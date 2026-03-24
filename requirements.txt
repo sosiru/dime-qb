@@ -1,0 +1,7 @@
+Django>=4.2,<5.0
+python-dotenv==1.0.0
+requests==2.31.0
+intuit-oauth
+django-environ==0.11.2
+djangorestframework==3.14.0
+Pillow>=10.3.0

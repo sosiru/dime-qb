@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickBooks Integration Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; color: #333; }
+        header { background: #2CA01C; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
+        header h1 { font-size: 1.4rem; }
+        .container { max-width: 960px; margin: 32px auto; padding: 0 16px; }
+        .messages { margin-bottom: 20px; }
+        .message { padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .card h2 { font-size: 1rem; color: #666; margin-bottom: 16px; text-transform: uppercase; letter-spacing: .5px; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: .85rem; font-weight: 600; }
+        .status-badge.connected { background: #d4edda; color: #155724; }
+        .status-badge.disconnected { background: #f8d7da; color: #721c24; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .stat { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+        .stat .number { font-size: 2rem; font-weight: 700; color: #2CA01C; }
+        .stat .label { font-size: .85rem; color: #666; margin-top: 4px; }
+        .btn { display: inline-block; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: .9rem; border: none; cursor: pointer; }
+        .btn-primary { background: #2CA01C; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn:hover { opacity: .88; }
+        .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .api-list { list-style: none; }
+        .api-list li { padding: 10px 0; border-bottom: 1px solid #eee; font-family: monospace; font-size: .9rem; }
+        .api-list li:last-child { border-bottom: none; }
+        .method { display: inline-block; width: 48px; text-align: center; padding: 2px 4px; border-radius: 4px; font-size: .75rem; font-weight: 700; margin-right: 8px; }
+        .get { background: #cfe2ff; color: #084298; }
+        .post { background: #d1e7dd; color: #0f5132; }
+    </style>
+</head>
+<body>
+<header>
+    <svg width="28" height="28" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="white" fill-opacity=".2"/><path d="M10 20h20M20 10v20" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+    <h1>QuickBooks Integration</h1>
+</header>
+
+<div class="container">
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <h2>Connection Status</h2>
+        {% if is_connected %}
+            <span class="status-badge connected">✓ Connected to QuickBooks</span>
+            <p style="margin-top:12px;color:#555;font-size:.9rem;">Your account is linked. You can now sync data and use the API endpoints.</p>
+            <div class="actions" style="margin-top:16px;">
+                <form method="post" action="{% url 'qb:sync_all' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">⟳ Sync All Data</button>
+                </form>
+                <a href="{% url 'qb:disconnect' %}" class="btn btn-danger">Disconnect</a>
+            </div>
+        {% else %}
+            <span class="status-badge disconnected">✗ Not Connected</span>
+            <p style="margin-top:12px;color:#555;font-size:.9rem;">Connect your QuickBooks account to start syncing data.</p>
+            <div class="actions" style="margin-top:16px;">
+                <a href="{% url 'qb:connect' %}" class="btn btn-primary">Connect QuickBooks</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>Synced Data</h2>
+        <div class="stats-grid">
+            <div class="stat"><div class="number">{{ customer_count }}</div><div class="label">Customers</div></div>
+            <div class="stat"><div class="number">{{ invoice_count }}</div><div class="label">Invoices</div></div>
+            <div class="stat"><div class="number">{{ account_count }}</div><div class="label">Accounts</div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Available API Endpoints</h2>
+        <ul class="api-list">
+            <li><span class="method get">GET</span> /qb/api/company/ — Company Info</li>
+            <li><span class="method get">GET</span> /qb/api/customers/ — List Customers</li>
+            <li><span class="method post">POST</span> /qb/api/customers/create/ — Create Customer</li>
+            <li><span class="method get">GET</span> /qb/api/invoices/ — List Invoices</li>
+            <li><span class="method post">POST</span> /qb/api/invoices/create/ — Create Invoice</li>
+            <li><span class="method get">GET</span> /qb/api/accounts/ — Chart of Accounts</li>
+            <li><span class="method get">GET</span> /qb/api/reports/pnl/?start_date=&end_date= — P&L Report</li>
+            <li><span class="method get">GET</span> /qb/api/sync/status/ — Local DB Counts</li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>
