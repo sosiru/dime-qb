@@ -128,3 +128,5 @@ UNFOLD = {
     "SITE_HEADER": "QuickBooks Integration",
     "SITE_URL": "/",
 }
+
+QUICKBOOKS_BASE_URL = "https://integrations.dimeapp.co.ke"
