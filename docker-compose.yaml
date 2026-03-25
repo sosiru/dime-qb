@@ -35,6 +35,7 @@ services:
       - QUICKBOOKS_CLIENT_SECRET=OQiyJXqUkxi4Bxel4b5DmCfARiTKMOUdRgd5GDag
       - QUICKBOOKS_REDIRECT_URI=https://integrations.dimeapp.co.ke/qb/callback
       - QUICKBOOKS_ENVIRONMENT=sandbox
+      - ALLOWED_HOSTS=*
     volumes:
       - .:/usr/src/app
       - qb_uploads:/var/www/qb/
