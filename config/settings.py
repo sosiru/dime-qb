@@ -12,7 +12,16 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY", default="django-insecure-change-this-in-production")
 DEBUG = env("DEBUG", default=True)
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "*"])
+# ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "*"])
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "integrations.dimeapp.co.ke",
+    ".ngrok-free.app",
+    ".ngrok-free.dev",
+]
 
 INSTALLED_APPS = [
     "unfold",
@@ -107,8 +116,9 @@ QUICKBOOKS_SCOPES = ["com.intuit.quickbooks.accounting"]
 
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://integrations.dimeapp.co.ke",
+    "https://*.ngrok-free.app",
     "https://*.ngrok-free.dev",
-    "*"
 ]
 
 
