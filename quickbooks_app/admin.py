@@ -1,38 +1,42 @@
+from unfold.admin import ModelAdmin
 from django.contrib import admin
-from .models import QuickBooksToken, Customer, Invoice, Account
+
+from .models import QuickBooksToken, Customer, Invoice, Account, OAuthState
 
 
 @admin.register(QuickBooksToken)
-class QuickBooksTokenAdmin(admin.ModelAdmin):
+class QuickBooksTokenAdmin(ModelAdmin):
     list_display = ["user", "realm_id", "access_token_expires_at", "updated_at"]
     readonly_fields = ["access_token", "refresh_token"]
+    search_fields = ["realm_id", "user__username"]
+    ordering = ["-updated_at"]
 
 
 @admin.register(Customer)
-class CustomerAdmin(admin.ModelAdmin):
+class CustomerAdmin(ModelAdmin):
     list_display = ["display_name", "email", "balance", "active", "synced_at"]
     search_fields = ["display_name", "email", "qb_id"]
     list_filter = ["active"]
+    ordering = ["-synced_at"]
 
 
 @admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
+class InvoiceAdmin(ModelAdmin):
     list_display = ["doc_number", "customer_name", "total_amt", "balance", "txn_date", "synced_at"]
     search_fields = ["doc_number", "customer_name", "qb_id"]
+    ordering = ["-txn_date"]
 
 
 @admin.register(Account)
-class AccountAdmin(admin.ModelAdmin):
+class AccountAdmin(ModelAdmin):
     list_display = ["name", "account_type", "current_balance", "active", "synced_at"]
     search_fields = ["name", "qb_id"]
     list_filter = ["account_type", "active"]
-
-from django.contrib import admin
-from .models import OAuthState
+    ordering = ["-synced_at"]
 
 
 @admin.register(OAuthState)
-class OAuthStateAdmin(admin.ModelAdmin):
+class OAuthStateAdmin(ModelAdmin):
     list_display = ("id", "state", "user", "used", "created_at")
     list_filter = ("used", "created_at")
     search_fields = ("state", "user__username", "user__email")
