@@ -140,3 +140,5 @@ UNFOLD = {
 }
 
 QUICKBOOKS_BASE_URL = "https://integrations.dimeapp.co.ke"
+QUICKBOOKS_USERNAME = "root"
+QUICKBOOKS_PASSWORD = "0000"

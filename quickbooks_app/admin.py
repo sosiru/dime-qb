@@ -4,6 +4,9 @@ from django.contrib import admin
 from .backend.qb_admin_mixin import QuickBooksAdminMixin
 from .models import QuickBooksToken, Customer, Invoice, Account, OAuthState
 
+from unfold.admin import ModelAdmin
+from django.contrib import admin
+
 
 @admin.register(QuickBooksToken)
 class QuickBooksTokenAdmin(ModelAdmin):
@@ -12,7 +15,16 @@ class QuickBooksTokenAdmin(ModelAdmin):
     search_fields = ["realm_id", "user__username"]
     ordering = ["-updated_at"]
 
-    actions = ["connect_quickbooks"]
+    def has_add_permission(self, request):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+
+        extra_context["qb_connect_url"] = "https://integrations.dimeapp.co.ke/qb/connect/"
+
+        return super().changelist_view(request, extra_context=extra_context)
+
 
 
 @admin.register(Customer)
