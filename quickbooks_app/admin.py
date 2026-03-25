@@ -33,7 +33,7 @@ class QuickBooksTokenAdmin(ModelAdmin):
             auth_url = None
             self.message_user(request, f"Error connecting: {str(e)}", level="error")
 
-        extra_context["qb_auth_url"] = auth_url
+        extra_context["qb_auth_url"] = str(auth_url).replace('"', '')
 
         return super().changelist_view(request, extra_context=extra_context)
 
