@@ -1,15 +1,12 @@
-from unfold.admin import ModelAdmin
-from django.contrib import admin
-
 from .backend.qb_admin_mixin import QuickBooksAdminMixin
 from .models import QuickBooksToken, Customer, Invoice, Account, OAuthState
-
 from unfold.admin import ModelAdmin
 from django.contrib import admin
 
 
 @admin.register(QuickBooksToken)
 class QuickBooksTokenAdmin(ModelAdmin):
+    change_list_template = "unfold/admin/change_list.html"
     list_display = ["user", "realm_id", "access_token_expires_at", "updated_at"]
     readonly_fields = ["access_token", "refresh_token"]
     search_fields = ["realm_id", "user__username"]
@@ -20,9 +17,7 @@ class QuickBooksTokenAdmin(ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-
         extra_context["qb_connect_url"] = "https://integrations.dimeapp.co.ke/qb/connect/"
-
         return super().changelist_view(request, extra_context=extra_context)
 
 
