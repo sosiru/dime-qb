@@ -42,17 +42,22 @@ class Customer(models.Model):
         return f"{self.display_name} (QB: {self.qb_id})"
 
     def save(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
         is_new = self.pk is None
+
         if is_new and not self.qb_id:
             from . import services
+
             try:
                 data = services.create_customer(
-                    user=None,
+                    user=user,
                     display_name=self.display_name,
                     email=self.email,
                     phone=self.phone,
                 )
+
                 qb_customer = data.get("Customer")
+
                 if qb_customer:
                     self.qb_id = qb_customer.get("Id")
                     self.display_name = qb_customer.get("DisplayName")
@@ -60,14 +65,18 @@ class Customer(models.Model):
                     self.phone = qb_customer.get("PrimaryPhone", {}).get("FreeFormNumber", "")
                     self.balance = Decimal(qb_customer.get("Balance", 0))
                     self.active = qb_customer.get("Active", True)
+
+                    # ✅ Create Account
                     if self.account_name and self.account_type:
                         account_response = services.create_account(
-                            user=None,
+                            user=user,
                             name=self.account_name,
                             account_type=self.account_type,
                             account_sub_type=self.account_sub_type,
                         )
+
                         qb_account = account_response.get("Account")
+
                         if qb_account:
                             from .models import Account
                             Account.objects.update_or_create(
@@ -80,8 +89,10 @@ class Customer(models.Model):
                                     "active": qb_account.get("Active", True),
                                 },
                             )
+
             except Exception as e:
                 print("QuickBooks sync failed:", str(e))
+
         super().save(*args, **kwargs)
 
 

@@ -33,8 +33,6 @@ class QuickBooksTokenAdmin(ModelAdmin):
 
         return super().changelist_view(request, extra_context=extra_context)
 
-
-
 @admin.register(Customer)
 class CustomerAdmin(QuickBooksAdminMixin, ModelAdmin):
     list_display = ["display_name", "email", "balance", "active", "synced_at"]
@@ -42,6 +40,8 @@ class CustomerAdmin(QuickBooksAdminMixin, ModelAdmin):
     list_filter = ["active"]
     ordering = ["-synced_at"]
 
+    def save_model(self, request, obj, form, change):
+        obj.save(user=request.user)
 
 
 @admin.register(Invoice)
