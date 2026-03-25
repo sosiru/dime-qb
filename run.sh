@@ -6,4 +6,4 @@ exec gunicorn \
     --bind 0.0.0.0:$PORT \
     --access-logfile - \
     --timeout 300 \
-    conf.wsgi:application -w 2
+    config.wsgi:application -w 2
