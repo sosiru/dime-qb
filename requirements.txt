@@ -31,3 +31,4 @@ django-timezone-field==6.1.0
 django-redis==5.4.0
 boto3
 django-storages
+django-unfold==0.67
