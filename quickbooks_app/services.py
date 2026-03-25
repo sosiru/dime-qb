@@ -33,7 +33,7 @@ def get_authorization_url():
         "client_id": settings.QUICKBOOKS_CLIENT_ID,
         "response_type": "code",
         "scope": "com.intuit.quickbooks.accounting",
-        "redirect_uri": "https://upstanding-amie-contritely.ngrok-free.dev/qb/callback",
+        "redirect_uri": "https://integrations.dimeapp.co.ke/qb/callback",
         "state": state,
     }
 
@@ -56,7 +56,7 @@ def exchange_code_for_tokens(auth_code: str, realm_id: str, user):
     data = {
         "grant_type": "authorization_code",
         "code": auth_code,
-        "redirect_uri": "https://upstanding-amie-contritely.ngrok-free.dev/qb/callback" # settings.QUICKBOOKS_REDIRECT_URI,
+        "redirect_uri": "https://integrations.dimeapp.co.ke/qb/callback" # settings.QUICKBOOKS_REDIRECT_URI,
     }
 
     response = requests.post(TOKEN_URL, headers=headers, data=data)
