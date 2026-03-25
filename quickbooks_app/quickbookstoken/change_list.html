@@ -1,37 +1,35 @@
 {% extends "unfold/change_list.html" %}
 
-{% block object-tools-items %}
-    {{ block.super }}
-
-    <li>
+{% block object-tools %}
+    <div class="flex gap-2">
         <a href="#"
            onclick="connectQB(event)"
            class="button bg-primary text-white">
             🔗 Connect QuickBooks
         </a>
-    </li>
-
-    <script>
-        async function connectQB(event) {
-            event.preventDefault();
-
-            try {
-                const res = await fetch("https://integrations.dimeapp.co.ke/qb/connect/", {
-                    credentials: "include"
-                });
-
-                const data = await res.json();
-
-                if (data.auth_url) {
-                    window.open(data.auth_url, "_blank"); // ✅ opens new tab
-                } else {
-                    alert("No auth URL returned");
-                }
-
-            } catch (err) {
-                console.error(err);
-                alert("Failed to connect to QuickBooks");
-            }
-        }
-    </script>
+    </div>
 {% endblock %}
+
+<script>
+async function connectQB(event) {
+    event.preventDefault();
+
+    try {
+        const res = await fetch("{{ qb_connect_url }}", {
+            credentials: "include"
+        });
+
+        const data = await res.json();
+
+        if (data.auth_url) {
+            window.open(data.auth_url, "_blank"); // ✅ opens new tab
+        } else {
+            alert("No auth URL returned");
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Failed to connect to QuickBooks");
+    }
+}
+</script>
