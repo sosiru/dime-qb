@@ -1,0 +1,89 @@
+name: Deploy Quickbooks Live Service
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and deploy
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Declare docker tag variable
+        id: vars
+        shell: bash
+        run: |
+          GIT_HASH=$(git rev-parse --short "${GITHUB_SHA}")
+          echo "docker_tag=${GITHUB_REF##*/}-${GIT_HASH}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and push image (cached, single platform)
+        id: build
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: osiru/dime_loans:${{ env.docker_tag }}
+          platforms: linux/amd64
+          cache-from: type=registry,ref=osiru/dime_loans:buildcache
+          cache-to: type=registry,ref=osiru/dime_loans:buildcache,mode=max
+
+      - name: Run deployment commands
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 167.71.170.199
+          username: root
+          port: 22
+          key: ${{ secrets.SERVER_SSH }}
+
+          script_stop: true
+          script: |
+            cd /srv/apps/live/dime/dime-qb/
+
+            sudo chown $USER:$USER .env
+            sudo chmod u+w .env
+            sudo chown -R $USER:$USER /var/www/dime-qb/
+
+            if [ -d ".git/rebase-merge" ]; then
+              git rebase --abort || rm -rf .git/rebase-merge
+            fi
+
+            git reset --hard HEAD
+            git stash || true
+            git pull origin main
+
+            LATEST_TAG=${{ env.docker_tag }}
+
+            sed -i '/^BACKEND_TAG=/d' .env
+            echo "BACKEND_TAG=${LATEST_TAG}" >> .env
+
+            if [[ -z "$LATEST_TAG" ]]; then
+              exit 1
+            fi
+
+            echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            docker-compose pull
+            docker-compose up -d --build
+
+      - name: Restart Docker Service
+        run: sudo systemctl restart docker

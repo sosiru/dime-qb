@@ -1,0 +1,1 @@
+web: gunicorn dime_loans.wsgi --log-file -
