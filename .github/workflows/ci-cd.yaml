@@ -1,0 +1,130 @@
+name: Deploy Dime Loans Backend Live Service
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and deploy
+    runs-on: ubuntu-22.04
+
+    steps:
+      -   name: Check out code
+          uses: actions/checkout@v4
+      
+      -   name: Declare docker tag variable
+          id: vars
+          shell: bash
+          run: |
+            GIT_HASH=$(git rev-parse --short "${GITHUB_SHA}")
+            echo "docker_tag=$(echo ${GITHUB_REF##*/}-${GIT_HASH})" >> $GITHUB_ENV
+      
+      -   name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
+      
+      -   name: Login to Docker Hub
+          uses: docker/login-action@v2
+          with:
+            username: osiru
+            password: dckr_pat_xnup3kjSKQ7IWFVD8jqLiI4Cp7w
+      
+      -   name: Build and push image (cached, single platform)
+          id: build
+          uses: docker/build-push-action@v4
+          with:
+            context: .
+            file: ./Dockerfile
+            push: true
+            tags: osiru/dime_loans:${{ env.docker_tag }}
+            platforms: linux/amd64
+            cache-from: type=registry,ref=osiru/dime_loans:buildcache
+            cache-to: type=registry,ref=osiru/dime_loans:buildcache,mode=max
+      
+      - name: Run deployment commands
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 167.71.170.199
+          username: root
+          port: 22
+          key: |
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            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
+            -----END OPENSSH PRIVATE KEY-----
+          script_stop: true
+          script: |
+            cd /srv/apps/live/dime/dime-qb/
+            sudo chown $USER:$USER .env
+            sudo chmod u+w .env
+            sudo chown -R $USER:$USER /var/www/dime-qb/
+            if [ -d ".git/rebase-merge" ]; then
+              git rebase --abort || rm -rf .git/rebase-merge
+            fi
+            git reset --hard HEAD
+            git stash || true
+            git pull origin main
+            LATEST_TAG=${{ env.docker_tag }}
+            sed -i '/^BACKEND_TAG=/d' .env
+            echo "BACKEND_TAG=${LATEST_TAG}" >> .env
+            if [[ -z "$LATEST_TAG" ]]; then
+              exit 1
+            fi
+            echo "dckr_pat_xnup3kjSKQ7IWFVD8jqLiI4Cp7w" | docker login -u "osiru" --password-stdin
+            docker-compose pull
+            docker-compose up -d --build
+
+
+      - name: Restart Docker Service
+        run: sudo systemctl restart docker
