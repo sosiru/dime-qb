@@ -1,23 +1,40 @@
+import requests
+from django.conf import settings
+
 from .backend.qb_admin_mixin import QuickBooksAdminMixin
 from .models import QuickBooksToken, Customer, Invoice, Account, OAuthState
 from unfold.admin import ModelAdmin
 from django.contrib import admin
 
-
 @admin.register(QuickBooksToken)
 class QuickBooksTokenAdmin(ModelAdmin):
-    change_list_template = "unfold/admin/change_list.html"
     list_display = ["user", "realm_id", "access_token_expires_at", "updated_at"]
     readonly_fields = ["access_token", "refresh_token"]
     search_fields = ["realm_id", "user__username"]
     ordering = ["-updated_at"]
 
+    change_list_template = "admin/quickbooks_connect.html"
+
     def has_add_permission(self, request):
-        return False
+        return False  # removes "Add" button
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-        extra_context["qb_connect_url"] = "https://integrations.dimeapp.co.ke/qb/connect/"
+
+        try:
+            response = requests.get(
+                f"{settings.QUICKBOOKS_BASE_URL}/qb/connect/",
+                timeout=10,
+            )
+            data = response.json()
+            auth_url = data.get("auth_url")
+
+        except Exception as e:
+            auth_url = None
+            self.message_user(request, f"Error connecting: {str(e)}", level="error")
+
+        extra_context["qb_auth_url"] = auth_url
+
         return super().changelist_view(request, extra_context=extra_context)
 
 
