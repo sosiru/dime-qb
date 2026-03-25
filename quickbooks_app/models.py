@@ -19,19 +19,70 @@ class QuickBooksToken(models.Model):
         return f"{self.user.username} — Realm {self.realm_id}"
 
 
-class Customer(models.Model):
-    """Cached QuickBooks customers."""
+from django.db import models
+from decimal import Decimal
+from django.utils import timezone
 
-    qb_id = models.CharField(max_length=100, unique=True)
+
+class Customer(models.Model):
+    qb_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     display_name = models.CharField(max_length=255)
     email = models.EmailField(blank=True)
-    phone = models.CharField(max_length=50, blank=True)
+    phone = models.CharField(max_length=50, blank=True, null=True)
+
+    account_name = models.CharField(max_length=255, null=True, blank=True)
+    account_type = models.CharField(max_length=100, null=True, blank=True)
+    account_sub_type = models.CharField(max_length=100, null=True, blank=True)
+
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     active = models.BooleanField(default=True)
     synced_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.display_name} (QB: {self.qb_id})"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        if is_new and not self.qb_id:
+            from . import services
+            try:
+                data = services.create_customer(
+                    user=None,
+                    display_name=self.display_name,
+                    email=self.email,
+                    phone=self.phone,
+                )
+                qb_customer = data.get("Customer")
+                if qb_customer:
+                    self.qb_id = qb_customer.get("Id")
+                    self.display_name = qb_customer.get("DisplayName")
+                    self.email = qb_customer.get("PrimaryEmailAddr", {}).get("Address", "")
+                    self.phone = qb_customer.get("PrimaryPhone", {}).get("FreeFormNumber", "")
+                    self.balance = Decimal(qb_customer.get("Balance", 0))
+                    self.active = qb_customer.get("Active", True)
+                    if self.account_name and self.account_type:
+                        account_response = services.create_account(
+                            user=None,
+                            name=self.account_name,
+                            account_type=self.account_type,
+                            account_sub_type=self.account_sub_type,
+                        )
+                        qb_account = account_response.get("Account")
+                        if qb_account:
+                            from .models import Account
+                            Account.objects.update_or_create(
+                                qb_id=qb_account.get("Id"),
+                                defaults={
+                                    "name": qb_account.get("Name"),
+                                    "account_type": qb_account.get("AccountType", ""),
+                                    "account_sub_type": qb_account.get("AccountSubType", ""),
+                                    "current_balance": Decimal(qb_account.get("CurrentBalance", 0)),
+                                    "active": qb_account.get("Active", True),
+                                },
+                            )
+            except Exception as e:
+                print("QuickBooks sync failed:", str(e))
+        super().save(*args, **kwargs)
 
 
 class Invoice(models.Model):

@@ -1,14 +1,7 @@
-import requests
-from django.conf import settings
-from django.shortcuts import redirect, render
-from django.urls import path
-
 from .backend.qb_admin_mixin import QuickBooksAdminMixin
-from .forms import QuickBooksCustomerForm
 from .models import QuickBooksToken, Customer, Invoice, Account, OAuthState
 from unfold.admin import ModelAdmin
-from django.contrib import admin, messages
-
+from django.contrib import admin
 
 @admin.register(QuickBooksToken)
 class QuickBooksTokenAdmin(ModelAdmin):
@@ -41,54 +34,15 @@ class QuickBooksTokenAdmin(ModelAdmin):
         return super().changelist_view(request, extra_context=extra_context)
 
 
+
 @admin.register(Customer)
-class CustomerAdmin(ModelAdmin):
+class CustomerAdmin(QuickBooksAdminMixin, ModelAdmin):
     list_display = ["display_name", "email", "balance", "active", "synced_at"]
+    search_fields = ["display_name", "email", "qb_id"]
+    list_filter = ["active"]
+    ordering = ["-synced_at"]
 
-    change_list_template = "admin/customer_list.html"
 
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            path(
-                "create-qb-customer/",
-                self.admin_site.admin_view(self.create_qb_customer),
-                name="create_qb_customer",
-            ),
-        ]
-        return custom_urls + urls
-
-    def create_qb_customer(self, request):
-        if request.method == "POST":
-            form = QuickBooksCustomerForm(request.POST)
-
-            if form.is_valid():
-                payload = form.cleaned_data
-
-                try:
-                    response = requests.post(
-                        f"{settings.QUICKBOOKS_BASE_URL}/qb/api/customers/create/",
-                        json=payload,
-                        timeout=15,
-                    )
-
-                    if response.status_code == 201:
-                        messages.success(request, "✅ Customer created in QuickBooks")
-                        return redirect("../")
-                    else:
-                        messages.error(request, f"❌ Error: {response.text}")
-
-                except Exception as e:
-                    messages.error(request, f"❌ {str(e)}")
-
-        else:
-            form = QuickBooksCustomerForm()
-
-        return render(
-            request,
-            "admin/create_qb_customer.html",
-            {"form": form}
-        )
 
 @admin.register(Invoice)
 class InvoiceAdmin(QuickBooksAdminMixin, ModelAdmin):
