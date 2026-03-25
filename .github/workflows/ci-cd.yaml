@@ -73,7 +73,7 @@ jobs:
             if [[ -z "$LATEST_TAG" ]]; then
               exit 1
             fi
-            echo "dckr_pat_xnup3kjSKQ7IWFVD8jqLiI4Cp7w" | docker login -u "osiru" --password-stdin
+            echo "{{secrets.DOCKER_TOKEN}}" | docker login -u "{{secrets.DOCKER_USERNAME}}" --password-stdin
             docker-compose pull
             docker-compose up -d --build
 
