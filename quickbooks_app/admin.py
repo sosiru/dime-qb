@@ -20,20 +20,19 @@ class QuickBooksTokenAdmin(ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-
         try:
-            response = requests.get(
-                f"{settings.QUICKBOOKS_BASE_URL}/qb/connect/",
-                timeout=10,
+            from . import services
+            auth_url, state_token = services.get_authorization_url()
+            print(auth_url)
+            OAuthState.objects.create(
+                state=state_token,
+                user=request.user
             )
-            data = response.json()
-            auth_url = data.get("auth_url")
-
         except Exception as e:
             auth_url = None
             self.message_user(request, f"Error connecting: {str(e)}", level="error")
 
-        extra_context["qb_auth_url"] = str(auth_url).replace('"', '')
+        extra_context["qb_auth_url"] = auth_url
 
         return super().changelist_view(request, extra_context=extra_context)
 
