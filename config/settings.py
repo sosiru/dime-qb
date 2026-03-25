@@ -15,6 +15,7 @@ DEBUG = env("DEBUG", default=True)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 INSTALLED_APPS = [
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -107,6 +108,7 @@ QUICKBOOKS_SCOPES = ["com.intuit.quickbooks.accounting"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.ngrok-free.dev",
+    "*"
 ]
 
 
@@ -118,4 +120,11 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
     ],
+}
+
+
+UNFOLD = {
+    "SITE_TITLE": "QuickBooks Admin",
+    "SITE_HEADER": "QuickBooks Integration",
+    "SITE_URL": "/",
 }
