@@ -1,8 +1,8 @@
 from unfold.admin import ModelAdmin
 from django.contrib import admin
 
+from .backend.qb_admin_mixin import QuickBooksAdminMixin
 from .models import QuickBooksToken, Customer, Invoice, Account, OAuthState
-from .qb_admin_mixin import QuickBooksAdminMixin
 
 
 @admin.register(QuickBooksToken)
