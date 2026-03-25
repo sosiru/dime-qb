@@ -6,4 +6,4 @@ exec gunicorn \
     --bind 0.0.0.0:$PORT \
     --access-logfile - \
     --timeout 300 \
-    qb.wsgi:application -w 2
+    conf.wsgi:application -w 2
