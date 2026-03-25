@@ -1,3 +1,5 @@
+import requests
+from django.conf import settings
 from django.shortcuts import redirect, render
 
 from .backend.qb_admin_mixin import QuickBooksAdminMixin
