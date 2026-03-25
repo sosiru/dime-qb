@@ -597,7 +597,7 @@ class QuickBooksClient:
 if __name__ == "__main__":
 
 
-    base = "https://upstanding-amie-contritely.ngrok-free.dev"
+    base = "https://integrations.dimeapp.co.ke"
     user = "steve"
     pwd  = "2755"
 
