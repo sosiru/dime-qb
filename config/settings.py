@@ -86,12 +86,12 @@ QUICKBOOKS_REDIRECT_URI = env(
 QUICKBOOKS_ENVIRONMENT = env("QUICKBOOKS_ENVIRONMENT", default="sandbox")  # or "production"
 QUICKBOOKS_SCOPES = ["com.intuit.quickbooks.accounting"]
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
 
-SESSION_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SAMESITE = "None"
-# REST Framework
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.dev",
+]
+
+
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",

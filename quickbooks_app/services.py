@@ -191,6 +191,48 @@ def query(user, sql: str):
 def get_company_info(user):
     return query(user, "SELECT * FROM CompanyInfo")
 
+def create_account(
+    user,
+    name,
+    account_type,
+    account_sub_type=None,
+    description=None,
+    classification=None
+):
+    """
+    Create a QuickBooks account.
+    Required: name, account_type
+    Optional: sub_type, description, classification
+    """
+
+    payload = {
+        "Name": name,
+        "AccountType": account_type,
+    }
+
+    if account_sub_type:
+        payload["AccountSubType"] = account_sub_type
+
+    if description:
+        payload["Description"] = description
+
+    if classification:
+        payload["Classification"] = classification
+
+    return _qb_post(user, "account", payload)
+
+def get_profit_and_loss(user, start_date, end_date):
+    """
+    Fetch Profit & Loss report from QuickBooks.
+    Dates must be in YYYY-MM-DD format.
+    """
+
+    params = {
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+    return _qb_get(user, "reports/ProfitAndLoss", params=params)
 
 def get_customers(user, max_results=100):
     data = query(user, f"SELECT * FROM Customer MAXRESULTS {max_results}")
@@ -242,9 +284,7 @@ def create_invoice(user, customer_ref_id, line_items, due_date=None):
     return _qb_post(user, "invoice", payload)
 
 
-# ─────────────────────────────────────────────────────────────
-# 🔄 SYNC HELPERS
-# ─────────────────────────────────────────────────────────────
+
 
 def sync_customers(user):
     from .models import Customer
