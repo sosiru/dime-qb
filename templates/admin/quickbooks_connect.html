@@ -1,0 +1,14 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+    <div class="flex gap-2">
+        {% if qb_auth_url %}
+            <a href="{{ qb_auth_url }}" target="_blank"
+               class="button bg-green-600 text-white px-4 py-2 rounded">
+                🔗 Connect QuickBooks
+            </a>
+        {% else %}
+            <span class="text-red-500">⚠ Unable to load QuickBooks connection</span>
+        {% endif %}
+    </div>
+{% endblock %}
