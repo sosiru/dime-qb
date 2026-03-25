@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
 from django.shortcuts import redirect, render
+from django.urls import path
 
 from .backend.qb_admin_mixin import QuickBooksAdminMixin
 from .forms import QuickBooksCustomerForm
