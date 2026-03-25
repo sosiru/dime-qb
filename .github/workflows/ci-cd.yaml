@@ -42,10 +42,10 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: osiru/dime_loans:${{ env.docker_tag }}
+          tags: osiru/qb:${{ env.docker_tag }}
           platforms: linux/amd64
-          cache-from: type=registry,ref=osiru/dime_loans:buildcache
-          cache-to: type=registry,ref=osiru/dime_loans:buildcache,mode=max
+          cache-from: type=registry,ref=osiru/qb:buildcache
+          cache-to: type=registry,ref=osiru/qb:buildcache,mode=max
 
       - name: Run deployment commands
         uses: appleboy/ssh-action@v1.0.0

@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   app:
-    container_name: dime_loans
-    image: osiru/dime_loans:${BACKEND_TAG}
+    container_name: qb
+    image: osiru/qb:${BACKEND_TAG}
     working_dir: /usr/src/app
     ports:
       - "9070:9070"
